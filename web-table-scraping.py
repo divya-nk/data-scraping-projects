@@ -23,22 +23,38 @@ driver.find_element_by_name('Login').click()
 
 #After successful login, takes to the airport search page, where: 
 
-#TODO: Loop it for all airports
+#looping it through all Airports
 
-#accesing the airport code from the dropdown
-driver.find_element_by_xpath('//li[@data-option-array-index="314"]').click()
-driver.find_element_by_xpath('//button[@class="btn btn-success"]').click()
+for i in range(1, totalAirports+1):
+    
+    select = Select(driver.find_element_by_xpath('//select[@name="c_aid"]'))
+    driver.find_element_by_css_selector(".chosen-container.chosen-container-single").click()
+    time.sleep(2)
+
+    #accesing the airport code from the dropdown
+    driver.find_element_by_xpath('//li[@data-option-array-index="{}"]'.format(i)).click()
+    driver.find_element_by_xpath('//button[@class="btn btn-success"]').click()
+    time.sleep(2)
+
+    if driver.find_element_by_xpath('//div[@class="alert alert-danger alert-dismissible"]'):
+        print(driver.find_element_by_xpath('//div[@class="alert alert-danger alert-dismissible"]').text)
+    
+    else:
+
+        #capture all tables on the page
+        tables = driver.find_elements_by_xpath("//div[@class='panel panel-primary']//table")
+
+        for table in tables:
+            if table.get_attribute('id') == 'example':
+                table.find_element_by_xpath('../div[@class="dataTables_length"]//select[@name="example_length"]/option[@value="-1"]').click()
+                time.sleep(1)
+            table_html = table.get_attribute('outerHTML')
+            df = read_html(table_html)
+            print(df)
+
+#TODO: export data to xcel/sql server?
+    
+#Log out and close the browser    
+driver.find_element_by_xpath('//input[@value="Log out"]').click()
 time.sleep(2)
-
-#Extracting table of Contacts
-driver.find_element_by_xpath('//ul[@id="myTabs"]/li/a[@href="#profile"]').click()
-time.sleep(2)
-driver.find_element_by_xpath('//select[@name="table-view-Data_length"]/option[@value="25"]').click()
-time.sleep(1)
-table = driver.find_element_by_xpath('//div[@id="table-view-Data_wrapper"]/table[@id="table-view-Data"]')
-table_html = table.get_attribute('outerHTML')
-
-df = read_html(table_html)
-print(df)
-
 driver.close()
